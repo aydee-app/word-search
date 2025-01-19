@@ -1,4 +1,5 @@
-import { WordSearchOptions, Position, Direction } from './types';
+import { Direction, Position, WordSearchOptions } from './types';
+import { shuffleArray } from './utils';
 
 export class WordSearch {
 	private grid: string[][];
@@ -22,16 +23,14 @@ export class WordSearch {
 	}
 
 	/**
-	 * Generate the word search puzzle using optimal placements
+	 * Generate the word search puzzle with random placements based on best fit
 	 */
 	generate(): string[][] {
 		this.reset();
 
-		// Sort words by length for better placement strategy
-		const sortedWords = [...this.words].sort((a, b) => b.length - a.length);
+		const shuffledWords = shuffleArray([...this.words]);
 
-		// Try placing each word by evaluating the best position
-		for (const word of sortedWords) {
+		for (const word of shuffledWords) {
 			const placed = this.placeWordWithBestFit(word);
 			if (!placed) {
 				throw new Error(`Could not place word: ${word}`);
@@ -137,7 +136,7 @@ export class WordSearch {
 	}
 
 	/**
-	 * Place the word by finding the best fitting position on the grid
+	 * Place the word by evaluating the best possible random placement (score-based)
 	 */
 	private placeWordWithBestFit(word: string): boolean {
 		const directions = this.getAvailableDirections();
@@ -145,21 +144,24 @@ export class WordSearch {
 		let bestPosition: Position | null = null;
 		let bestDirection: Direction | null = null;
 
-		for (const direction of directions) {
-			for (let x = 0; x < this.size; x++) {
-				for (let y = 0; y < this.size; y++) {
-					const position: Position = { x, y };
+		const maxAttempts = 300; // Limit attempts to avoid infinite loops
+		let attempts = 0;
 
-					if (this.canPlaceWordAt(word, position, direction)) {
-						const score = this.calculatePlacementScore(word, position, direction);
-						if (score > bestScore) {
-							bestScore = score;
-							bestPosition = position;
-							bestDirection = direction;
-						}
-					}
-				}
+		while (attempts < maxAttempts) {
+			const randomDirection = directions[Math.floor(Math.random() * directions.length)];
+			const randomPosition: Position = {
+				x: Math.floor(Math.random() * this.size),
+				y: Math.floor(Math.random() * this.size),
+			};
+
+			const score = this.calculatePlacementScore(word, randomPosition, randomDirection);
+			if (score > bestScore && this.canPlaceWordAt(word, randomPosition, randomDirection)) {
+				bestScore = score;
+				bestPosition = randomPosition;
+				bestDirection = randomDirection;
 			}
+
+			attempts++;
 		}
 
 		if (bestPosition && bestDirection) {
@@ -171,15 +173,17 @@ export class WordSearch {
 	}
 
 	/**
-	 * Calculate the score of a word placement, favoring placements that maximize space
+	 * Calculate the score for a potential word placement
+	 * Higher score means better fit (more available space)
 	 */
 	private calculatePlacementScore(word: string, position: Position, direction: Direction): number {
 		let score = 0;
 
 		for (let i = 0; i < word.length; i++) {
 			const pos = this.getNextPosition(position, i, direction);
+
 			if (this.isValidPosition(pos) && this.grid[pos.x][pos.y] === '') {
-				score++;
+				score++; // Score increases when the position is empty and valid
 			}
 		}
 
@@ -206,6 +210,8 @@ export class WordSearch {
 				return { x: start.x + index, y: start.y };
 			case 'diagonal':
 				return { x: start.x + index, y: start.y + index };
+			default:
+				return start;
 		}
 	}
 
