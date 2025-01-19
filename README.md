@@ -23,18 +23,18 @@
 
 ## Installation
 
-You can install `@aydee/word-search` via `bun`:
+You can install `@aydee-app/word-search` via `bun`:
 
 ```bash
-bun add @aydee/word-search
+bun add @aydee-app/word-search
 ```
 
 Alternatively, use npm or yarn:
 
 ```bash
-npm install @aydee/word-search
+npm install @aydee-app/word-search
 # or
-yarn add @aydee/word-search
+yarn add @aydee-app/word-search
 ```
 
 ## Usage
@@ -42,7 +42,7 @@ yarn add @aydee/word-search
 ### Basic Example
 
 ```ts
-import { WordSearch } from '@aydee/word-search';
+import { WordSearch } from '@aydee-app/word-search';
 
 const wordSearch = new WordSearch({
   words: ['apple', 'banana', 'cherry', 'date'],
