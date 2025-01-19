@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/aydee-app/word-search">
-   <img src="https://github.com/user-attachments/assets/a8d3d511-be94-4a32-ad17-d876908428ee" alt="Logo">
+   <img src="https://github.com/user-attachments/assets/3e6c0717-da39-40d6-b1f0-c8bcde3c4126" alt="Logo">
   </a>
 
   <h2 align="center">Word Search</h2>
