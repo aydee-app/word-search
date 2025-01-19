@@ -42,20 +42,26 @@ jobs:
       - id: create_tag
         name: Create Tag
         run: |
+          # Configure git user for tagging
           git config --global user.email "yassine@rais.me"
           git config --global user.name "Yassine Rais"
           
+          # Retrieve version from package.json using bun
           VERSION=$(bun --print "require('./package.json').version")
           echo "Version: $VERSION"
 
-          LATEST_TAG=$(git describe --tags --abbrev=0)
+          # Try to get the latest tag
+          LATEST_TAG=$(git describe --tags --abbrev=0 || echo "none")
           echo "Latest Tag: $LATEST_TAG"
 
+          # If no tags are found, LATEST_TAG will be 'none'
           if [ "$LATEST_TAG" != "v$VERSION" ]; then
             echo "New version detected. Creating a new tag."
-
+          
+            # Create a new git tag using the version
             git tag "v$VERSION"
             
+            # Push the tag to the remote repository
             git push origin "v$VERSION"
           else
             echo "No version change detected. Skipping tag creation."
