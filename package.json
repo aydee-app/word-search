@@ -1,7 +1,7 @@
 {
   "name": "@aydee-app/word-search",
   "type": "module",
-  "version": "0.0.9",
+  "version": "0.1.1",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "description": "Word search generator with customizable grid sizes and word placements.",
