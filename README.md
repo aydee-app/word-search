@@ -102,10 +102,10 @@ Constructor to initialize a WordSearch puzzle generator.
 - **`getGridSize(): number`**  
   Returns the current size of the grid.
 
-- **`export(): { grid: string[][], positions: Map<string, Position[]> }`**  
+- **`export(): { grid: string[][], positions: Map<string, Position[]>, size: number }`**  
   Exports a deep copy of the current grid along with the positions of all placed words in the puzzle. The return value is an object containing the grid and placed words.
 
-- **`import(grid: string[][], positions: Map<string, Position[]>): void`**  
+- **`import(data: {grid: string[][], positions: Map<string, Position[]}>): void`**  
   Imports a grid and the associated placed words into the puzzle. This method allows you to restore a previous state of the grid, including the positions of the words. If the imported grid dimensions or word placements are invalid, an error will be thrown.
 
 - **`print(): void`**  

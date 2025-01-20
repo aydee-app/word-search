@@ -1,8 +1,9 @@
 name: Publish
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 defaults:
   run:
@@ -17,6 +18,7 @@ env:
 jobs:
   publish-npm:
     name: 'Publish: npm Registry'
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     steps:
       - name: 'Checkout'

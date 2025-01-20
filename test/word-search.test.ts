@@ -335,65 +335,58 @@ describe('WordSearch', () => {
 
 	describe('Grid Export/Import', () => {
 		let wordSearch: WordSearch;
+		let wordSearch2: WordSearch;
 
 		beforeEach(() => {
 			wordSearch = new WordSearch({
-				size: 10,
 				words: ['HELLO', 'WORLD', 'TEST'],
+				allowDiagonal: true,
+			});
+			wordSearch2 = new WordSearch({
+				words: ['GOOD', 'MORNING', 'PEOPLE'],
 				allowDiagonal: true,
 			});
 		});
 
 		test('should export the grid correctly', () => {
 			wordSearch.generate();
-			const exportedData = wordSearch.export(); // Export both grid and placed words
+			const exportedData = wordSearch.export();
 
 			expect(exportedData.grid).toBeInstanceOf(Array);
 			expect(exportedData.grid.length).toBe(wordSearch.getGridSize());
 			expect(exportedData.grid[0].length).toBe(wordSearch.getGridSize());
 			expect(exportedData.grid[0]).toBeInstanceOf(Array);
-			expect(exportedData.positions.size).toBeGreaterThan(0); // Ensure words were placed
+			expect(exportedData.positions.size).toBeGreaterThan(0);
 		});
 
 		test('should import the grid correctly and reset word placements', () => {
 			wordSearch.generate();
-			const exportedData = wordSearch.export(); // Export both grid and placed words
+			const exportedData = wordSearch.export();
 
-			const newWordSearch = new WordSearch({
-				words: ['HELLO', 'WORLD', 'TEST'], // Import words so we expect placements
-				allowDiagonal: true,
-			});
+			wordSearch2.import(exportedData);
 
-			newWordSearch.import(exportedData.grid, exportedData.positions); // Import both grid and placed words
-
-			expect(newWordSearch.getGrid()).toEqual(exportedData.grid);
-			expect(newWordSearch.getPositions()).toEqual(exportedData.positions);
+			expect(wordSearch2.getGrid()).toEqual(exportedData.grid);
+			expect(wordSearch2.getGridSize()).toEqual(exportedData.size);
+			expect(wordSearch2.getPositions()).toEqual(exportedData.positions);
 		});
 
 		test('should throw an error if the imported grid has incorrect dimensions', () => {
 			wordSearch.generate();
 			const exportedData = wordSearch.export();
 
-			const newWordSearch = new WordSearch({
-				words: ['HELLO', 'WORLD', 'TEST'],
-				allowDiagonal: true,
-			});
+			const invalidGrid = exportedData.grid.map((row) => row.slice(0, row.length - 1));
 
-			const invalidGrid = exportedData.grid.map((row) => row.slice(0, row.length - 1)); // Modify grid to make it invalid
-
-			expect(() => newWordSearch.import(invalidGrid, exportedData.positions)).toThrowError(
-				'Invalid grid dimensions'
-			);
+			expect(() =>
+				wordSearch2.import({
+					grid: invalidGrid,
+					positions: exportedData.positions,
+				})
+			).toThrowError('Invalid grid dimensions');
 		});
 
 		test('should throw an error if the imported grid contains mismatched word placements', () => {
 			wordSearch.generate();
 			const exportedData = wordSearch.export();
-
-			const newWordSearch = new WordSearch({
-				words: ['HELLO', 'WORLD', 'TEST'],
-				allowDiagonal: true,
-			});
 
 			const modifiedGrid = exportedData.grid.map((row) => row.slice());
 			for (let x = 0; x < modifiedGrid.length; x++) {
@@ -405,9 +398,12 @@ describe('WordSearch', () => {
 				}
 			}
 
-			expect(() => newWordSearch.import(modifiedGrid, exportedData.positions)).toThrowError(
-				'Grid contains mismatched word placements'
-			);
+			expect(() =>
+				wordSearch2.import({
+					grid: modifiedGrid,
+					positions: exportedData.positions,
+				})
+			).toThrowError('Grid contains mismatched word placements');
 		});
 	});
 });

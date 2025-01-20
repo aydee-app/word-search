@@ -100,8 +100,9 @@ export class WordSearch {
 	/**
 	 * Export the current grid
 	 */
-	export(): { grid: string[][]; positions: Map<string, Position[]> } {
+	export() {
 		return {
+			size: this.getGridSize(),
 			grid: this.grid.map((row) => [...row]),
 			positions: new Map(this.positions),
 		};
@@ -110,7 +111,7 @@ export class WordSearch {
 	/**
 	 * Import a grid into the game
 	 */
-	import(grid: string[][], positions: Map<string, Position[]>): void {
+	import({ grid, positions }: { grid: string[][]; positions: Map<string, Position[]> }): void {
 		this.validateGrid(grid);
 
 		positions.forEach((positions, word) => {
@@ -121,6 +122,7 @@ export class WordSearch {
 			});
 		});
 
+		this.size = grid.length;
 		this.grid = grid.map((row) => [...row]);
 		this.positions = new Map(positions);
 	}
