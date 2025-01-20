@@ -2,10 +2,10 @@ import { Direction, Position, WordSearchOptions } from './types';
 import { shuffleArray } from './utils';
 
 export class WordSearch {
-	private grid: string[][];
 	private size: number;
+	private grid: string[][];
 	private words: string[];
-	private placedWords: Map<string, Position[]>;
+	private positions: Map<string, Position[]>;
 	private readonly allowDiagonal: boolean;
 	private readonly fillBlanks: boolean;
 
@@ -19,7 +19,7 @@ export class WordSearch {
 		this.validateOptions();
 
 		this.grid = this.createEmptyGrid();
-		this.placedWords = new Map();
+		this.positions = new Map();
 	}
 
 	/**
@@ -52,21 +52,21 @@ export class WordSearch {
 	 * Check if a word exists in the grid
 	 */
 	hasWord(word: string): boolean {
-		return this.placedWords.has(word.toUpperCase());
+		return this.positions.has(word.toUpperCase());
 	}
 
 	/**
 	 * Get positions of a placed word
 	 */
 	getWordPositions(word: string): Position[] | null {
-		return this.placedWords.get(word.toUpperCase()) || null;
+		return this.positions.get(word.toUpperCase()) || null;
 	}
 
 	/**
 	 * Get all placed words and their positions
 	 */
-	getPlacedWords(): Map<string, Position[]> {
-		return new Map(this.placedWords);
+	getPositions(): Map<string, Position[]> {
+		return new Map(this.positions);
 	}
 
 	/**
@@ -100,17 +100,29 @@ export class WordSearch {
 	/**
 	 * Export the current grid
 	 */
-	export(): string[][] {
-		return this.grid.map((row) => [...row]); // Return a deep copy of the grid
+	export(): { grid: string[][]; positions: Map<string, Position[]> } {
+		return {
+			grid: this.grid.map((row) => [...row]),
+			positions: new Map(this.positions),
+		};
 	}
 
 	/**
 	 * Import a grid into the game
 	 */
-	import(grid: string[][]): void {
+	import(grid: string[][], positions: Map<string, Position[]>): void {
 		this.validateGrid(grid);
-		this.grid = grid.map((row) => [...row]); // Deep copy to prevent external mutations
-		this.placedWords.clear(); // Clear existing words, as the new grid doesn't include placement data
+
+		positions.forEach((positions, word) => {
+			positions.forEach((pos, index) => {
+				if (grid[pos.x][pos.y] !== word[index]) {
+					throw new Error('Grid contains mismatched word placements');
+				}
+			});
+		});
+
+		this.grid = grid.map((row) => [...row]);
+		this.positions = new Map(positions);
 	}
 
 	/**
@@ -129,7 +141,7 @@ export class WordSearch {
 	 */
 	private reset(): void {
 		this.grid = this.createEmptyGrid();
-		this.placedWords.clear();
+		this.positions.clear();
 	}
 
 	/**
@@ -281,7 +293,7 @@ export class WordSearch {
 			positions.push({ ...pos });
 		}
 
-		this.placedWords.set(word, positions);
+		this.positions.set(word, positions);
 	}
 
 	/**

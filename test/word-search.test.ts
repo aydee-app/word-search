@@ -59,10 +59,10 @@ describe('WordSearch', () => {
 
 		test('places all words', () => {
 			wordSearch.generate();
-			const placedWords = wordSearch.getPlacedWords();
-			expect(placedWords.size).toBe(2);
-			expect(placedWords.has('HELLO')).toBe(true);
-			expect(placedWords.has('WORLD')).toBe(true);
+			const positions = wordSearch.getPositions();
+			expect(positions.size).toBe(2);
+			expect(positions.has('HELLO')).toBe(true);
+			expect(positions.has('WORLD')).toBe(true);
 		});
 
 		test('generates valid grids across multiple generations', () => {
@@ -225,9 +225,9 @@ describe('WordSearch', () => {
 				expect(row.length).toBe(62);
 			});
 
-			const placedWords = wordSearch.getPlacedWords();
+			const positions = wordSearch.getPositions();
 			words.forEach((word) => {
-				expect(placedWords.has(word)).toBe(true);
+				expect(positions.has(word)).toBe(true);
 			});
 
 			grid.forEach((row) => {
@@ -346,43 +346,68 @@ describe('WordSearch', () => {
 
 		test('should export the grid correctly', () => {
 			wordSearch.generate();
-			const exportedGrid = wordSearch.export();
+			const exportedData = wordSearch.export(); // Export both grid and placed words
 
-			expect(exportedGrid).toBeInstanceOf(Array);
-			expect(exportedGrid.length).toBe(wordSearch.getGridSize());
-			expect(exportedGrid[0].length).toBe(wordSearch.getGridSize());
-			expect(exportedGrid[0]).toBeInstanceOf(Array);
+			expect(exportedData.grid).toBeInstanceOf(Array);
+			expect(exportedData.grid.length).toBe(wordSearch.getGridSize());
+			expect(exportedData.grid[0].length).toBe(wordSearch.getGridSize());
+			expect(exportedData.grid[0]).toBeInstanceOf(Array);
+			expect(exportedData.positions.size).toBeGreaterThan(0); // Ensure words were placed
 		});
 
 		test('should import the grid correctly and reset word placements', () => {
 			wordSearch.generate();
-			const exportedGrid = wordSearch.export();
+			const exportedData = wordSearch.export(); // Export both grid and placed words
 
 			const newWordSearch = new WordSearch({
-				words: [],
-				allowDiagonal: false,
-				fillBlanks: false,
+				words: ['HELLO', 'WORLD', 'TEST'], // Import words so we expect placements
+				allowDiagonal: true,
 			});
 
-			newWordSearch.import(exportedGrid);
+			newWordSearch.import(exportedData.grid, exportedData.positions); // Import both grid and placed words
 
-			expect(newWordSearch.getGrid()).toEqual(exportedGrid);
-			expect(newWordSearch.getPlacedWords().size).toBe(0);
+			expect(newWordSearch.getGrid()).toEqual(exportedData.grid);
+			expect(newWordSearch.getPositions()).toEqual(exportedData.positions);
 		});
 
 		test('should throw an error if the imported grid has incorrect dimensions', () => {
 			wordSearch.generate();
-			const exportedGrid = wordSearch.export();
+			const exportedData = wordSearch.export();
 
 			const newWordSearch = new WordSearch({
-				words: [],
-				allowDiagonal: false,
-				fillBlanks: false,
+				words: ['HELLO', 'WORLD', 'TEST'],
+				allowDiagonal: true,
 			});
 
-			const invalidGrid = exportedGrid.map((row) => row.slice(0, row.length - 1));
+			const invalidGrid = exportedData.grid.map((row) => row.slice(0, row.length - 1)); // Modify grid to make it invalid
 
-			expect(() => newWordSearch.import(invalidGrid)).toThrowError('Invalid grid dimensions');
+			expect(() => newWordSearch.import(invalidGrid, exportedData.positions)).toThrowError(
+				'Invalid grid dimensions'
+			);
+		});
+
+		test('should throw an error if the imported grid contains mismatched word placements', () => {
+			wordSearch.generate();
+			const exportedData = wordSearch.export();
+
+			const newWordSearch = new WordSearch({
+				words: ['HELLO', 'WORLD', 'TEST'],
+				allowDiagonal: true,
+			});
+
+			const modifiedGrid = exportedData.grid.map((row) => row.slice());
+			for (let x = 0; x < modifiedGrid.length; x++) {
+				for (let y = 0; y < modifiedGrid[x].length; y++) {
+					if (modifiedGrid[x][y] === 'H') {
+						// Replace the "H" of HELLO
+						modifiedGrid[x][y] = '👹';
+					}
+				}
+			}
+
+			expect(() => newWordSearch.import(modifiedGrid, exportedData.positions)).toThrowError(
+				'Grid contains mismatched word placements'
+			);
 		});
 	});
 });

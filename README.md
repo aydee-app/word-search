@@ -20,6 +20,7 @@
 - Supports horizontal, vertical, and diagonal directions
 - Fills blank spaces with random letters
 - Handles large word lists efficiently
+- Import/Export Grid
 
 ## Installation
 
@@ -75,32 +76,45 @@ console.log(wordSearch.toString());
 
 ### `WordSearch(options: WordSearchOptions)`
 
-Constructor to initialize the WordSearch puzzle generator.
+Constructor to initialize a WordSearch puzzle generator.
 
 #### Parameters
 
 - `words` (string[]): An array of words to include in the puzzle.
-- `size` (number, optional): Grid size. If not specified, will calculate based on the word lengths.
-- `allowDiagonal` (boolean, optional): Whether diagonal word placement is allowed. Default is `false`.
-- `fillBlanks` (boolean, optional): Whether to fill empty spaces with random letters. Default is `true`.
+- `size` (number, optional): The grid size. If not specified, it will be calculated based on the word lengths.
+- `allowDiagonal` (boolean, optional): Specifies whether diagonal word placement is allowed. Default is `false`.
+- `fillBlanks` (boolean, optional): Specifies whether to fill empty spaces with random letters. Default is `true`.
 
-#### `generate(): string[][]` 
-Generates the word search puzzle and returns a 2D array representing the grid.
+#### Methods
 
-#### `hasWord(word: string): boolean` 
-Checks if a word exists in the puzzle.
+- **`generate(): string[][]`**  
+  Generates the word search puzzle and returns a 2D array representing the grid.
 
-#### `getWordPositions(word: string): Position[] | null` 
-Returns the positions of a word in the puzzle, or `null` if not found.
+- **`hasWord(word: string): boolean`**  
+  Checks if a word exists in the puzzle.
 
-#### `getGrid(): string[][]` 
-Returns the current grid state.
+- **`getPositions(word: string): Position[] | null`**  
+  Returns the positions of a word in the puzzle, or `null` if the word is not found.
 
-#### `print(): void` 
-Prints the current grid to the console.
+- **`getGrid(): string[][]`**  
+  Returns the current state of the grid.
 
-#### `toString(): string` 
-Converts the grid into a string format for easier display.
+- **`getGridSize(): number`**  
+  Returns the current size of the grid.
+
+- **`export(): { grid: string[][], positions: Map<string, Position[]> }`**  
+  Exports a deep copy of the current grid along with the positions of all placed words in the puzzle. The return value is an object containing the grid and placed words.
+
+- **`import(grid: string[][], positions: Map<string, Position[]>): void`**  
+  Imports a grid and the associated placed words into the puzzle. This method allows you to restore a previous state of the grid, including the positions of the words. If the imported grid dimensions or word placements are invalid, an error will be thrown.
+
+- **`print(): void`**  
+  Prints the current grid to the console.
+
+- **`toString(): string`**  
+  Converts the grid into a string format for easier display.
+
+---
 
 ## License
 
@@ -108,4 +122,4 @@ MIT License. See [LICENSE](LICENSE) for details.
 
 ## Contributing
 
-Feel free to fork the repository and create a pull request. We welcome contributions!
+Feel free to fork the repository and submit pull requests. We welcome contributions!
