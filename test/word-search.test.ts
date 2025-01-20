@@ -9,10 +9,6 @@ describe('WordSearch', () => {
 			);
 		});
 
-		test('throws error on empty words array', () => {
-			expect(() => new WordSearch({ size: 10, words: [] })).toThrow('Words array cannot be empty');
-		});
-
 		test('throws error when word is longer than grid', () => {
 			expect(() => new WordSearch({ size: 3, words: ['TOOLONG'] })).toThrow(
 				'Word "TOOLONG" is longer than grid size'
@@ -36,6 +32,12 @@ describe('WordSearch', () => {
 				allowDiagonal: true,
 				fillBlanks: true,
 			});
+		});
+
+		test('throws error on generation when words array is empty', () => {
+			expect(() => {
+				new WordSearch({ size: 10, words: [] }).generate();
+			}).toThrow('Words array cannot be empty');
 		});
 
 		test('generates grid of correct size', () => {
@@ -71,12 +73,10 @@ describe('WordSearch', () => {
 				fillBlanks: true,
 			});
 
-			// First generation
 			const firstGrid = wordSearch.generate();
 			const firstHelloPos = wordSearch.getWordPositions('HELLO');
 			const firstWorldPos = wordSearch.getWordPositions('WORLD');
 
-			// Verify first generation
 			expect(firstHelloPos).not.toBeNull();
 			expect(firstWorldPos).not.toBeNull();
 			const firstHello = firstHelloPos?.map((pos) => firstGrid[pos.x][pos.y]).join('');
@@ -84,12 +84,10 @@ describe('WordSearch', () => {
 			expect(firstHello).toBe('HELLO');
 			expect(firstWorld).toBe('WORLD');
 
-			// Second generation
 			const secondGrid = wordSearch.generate();
 			const secondHelloPos = wordSearch.getWordPositions('HELLO');
 			const secondWorldPos = wordSearch.getWordPositions('WORLD');
 
-			// Verify second generation
 			expect(secondHelloPos).not.toBeNull();
 			expect(secondWorldPos).not.toBeNull();
 			const secondHello = secondHelloPos?.map((pos) => secondGrid[pos.x][pos.y]).join('');
@@ -97,11 +95,9 @@ describe('WordSearch', () => {
 			expect(secondHello).toBe('HELLO');
 			expect(secondWorld).toBe('WORLD');
 
-			// Verify grids are properly filled
 			firstGrid.forEach((row) => row.forEach((cell) => expect(cell).toMatch(/^[A-Z]$/)));
 			secondGrid.forEach((row) => row.forEach((cell) => expect(cell).toMatch(/^[A-Z]$/)));
 
-			// Verify each word's positions form a valid sequence
 			const isValidSequence = (positions: Position[]) => {
 				return positions.every((pos, i) => {
 					if (i === 0) return true;
@@ -134,7 +130,6 @@ describe('WordSearch', () => {
 			expect(catPositions).toBeTruthy();
 			expect(ratPositions).toBeTruthy();
 
-			// Verify both words are placed
 			const catWord = catPositions?.map((pos) => grid[pos.x][pos.y]).join('');
 			const ratWord = ratPositions?.map((pos) => grid[pos.x][pos.y]).join('');
 			expect(catWord).toBe('CAT');
@@ -217,7 +212,6 @@ describe('WordSearch', () => {
 				'BOARD',
 			];
 
-			// const gridSize = Math.max(...words.map((c) => c.length));
 			const wordSearch = new WordSearch({
 				words,
 				allowDiagonal: true,
@@ -226,19 +220,16 @@ describe('WordSearch', () => {
 
 			const grid = wordSearch.generate();
 
-			// Verify grid size
 			expect(grid.length).toBe(62);
 			grid.forEach((row) => {
 				expect(row.length).toBe(62);
 			});
 
-			// Verify all words are placed
 			const placedWords = wordSearch.getPlacedWords();
 			words.forEach((word) => {
 				expect(placedWords.has(word)).toBe(true);
 			});
 
-			// Verify the grid is filled completely
 			grid.forEach((row) => {
 				row.forEach((cell) => {
 					expect(cell).toMatch(/^[A-Z]$/);
@@ -268,10 +259,8 @@ describe('WordSearch', () => {
 				(pos, i) => i === 0 || (pos.x === positions[i - 1].x + 1 && pos.y === positions[i - 1].y)
 			);
 
-			// Word must be placed either horizontally or vertically
 			expect(isHorizontal || isVertical).toBe(true);
 
-			// Verify the word is placed correctly
 			const word = positions?.map((pos) => grid[pos.x][pos.y]).join('');
 			expect(word).toBe('TEST');
 		});
@@ -305,7 +294,6 @@ describe('WordSearch', () => {
 			const str = wordSearch.toString();
 			const lines = str.split('\n');
 
-			// Verify grid dimensions
 			expect(lines.length).toBe(10);
 			lines.forEach((line) => {
 				const cells = line.split(' ');
@@ -320,10 +308,8 @@ describe('WordSearch', () => {
 			const originalGrid = wordSearch.generate();
 			const gridCopy = wordSearch.getGrid();
 
-			// Modify copy
 			gridCopy[0][0] = '👹';
 
-			// Original should be unchanged
 			expect(originalGrid[0][0]).not.toBe('👹');
 		});
 
@@ -332,7 +318,6 @@ describe('WordSearch', () => {
 			const positions = wordSearch.getWordPositions('HELLO');
 			expect(positions).toBeTruthy();
 
-			// Verify the word is placed correctly
 			const word = positions?.map((pos) => grid[pos.x][pos.y]).join('');
 			expect(word).toBe('HELLO');
 
@@ -345,6 +330,59 @@ describe('WordSearch', () => {
 					expect(distance === 1 || distance === 2).toBe(true);
 				}
 			});
+		});
+	});
+
+	describe('Grid Export/Import', () => {
+		let wordSearch: WordSearch;
+
+		beforeEach(() => {
+			wordSearch = new WordSearch({
+				size: 10,
+				words: ['HELLO', 'WORLD', 'TEST'],
+				allowDiagonal: true,
+			});
+		});
+
+		test('should export the grid correctly', () => {
+			wordSearch.generate();
+			const exportedGrid = wordSearch.export();
+
+			expect(exportedGrid).toBeInstanceOf(Array);
+			expect(exportedGrid.length).toBe(wordSearch.getGridSize());
+			expect(exportedGrid[0].length).toBe(wordSearch.getGridSize());
+			expect(exportedGrid[0]).toBeInstanceOf(Array);
+		});
+
+		test('should import the grid correctly and reset word placements', () => {
+			wordSearch.generate();
+			const exportedGrid = wordSearch.export();
+
+			const newWordSearch = new WordSearch({
+				words: [],
+				allowDiagonal: false,
+				fillBlanks: false,
+			});
+
+			newWordSearch.import(exportedGrid);
+
+			expect(newWordSearch.getGrid()).toEqual(exportedGrid);
+			expect(newWordSearch.getPlacedWords().size).toBe(0);
+		});
+
+		test('should throw an error if the imported grid has incorrect dimensions', () => {
+			wordSearch.generate();
+			const exportedGrid = wordSearch.export();
+
+			const newWordSearch = new WordSearch({
+				words: [],
+				allowDiagonal: false,
+				fillBlanks: false,
+			});
+
+			const invalidGrid = exportedGrid.map((row) => row.slice(0, row.length - 1));
+
+			expect(() => newWordSearch.import(invalidGrid)).toThrowError('Invalid grid dimensions');
 		});
 	});
 });

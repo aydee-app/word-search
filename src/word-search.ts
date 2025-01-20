@@ -28,6 +28,10 @@ export class WordSearch {
 	generate(): string[][] {
 		this.reset();
 
+		if (this.words.length === 0) {
+			throw new Error('Words array cannot be empty');
+		}
+
 		const shuffledWords = shuffleArray([...this.words]);
 
 		for (const word of shuffledWords) {
@@ -73,6 +77,13 @@ export class WordSearch {
 	}
 
 	/**
+	 * Get the current grid size
+	 */
+	getGridSize(): number {
+		return this.grid.length;
+	}
+
+	/**
 	 * Print the grid to the console
 	 */
 	print(): void {
@@ -86,6 +97,33 @@ export class WordSearch {
 		return this.grid.map((row) => row.join(' ')).join('\n');
 	}
 
+	/**
+	 * Export the current grid
+	 */
+	export(): string[][] {
+		return this.grid.map((row) => [...row]); // Return a deep copy of the grid
+	}
+
+	/**
+	 * Import a grid into the game
+	 */
+	import(grid: string[][]): void {
+		this.validateGrid(grid);
+		this.grid = grid.map((row) => [...row]); // Deep copy to prevent external mutations
+		this.placedWords.clear(); // Clear existing words, as the new grid doesn't include placement data
+	}
+
+	/**
+	 * Validate the imported grid
+	 */
+	private validateGrid(grid: string[][]): void {
+		if (!Array.isArray(grid) || grid.some((row) => !Array.isArray(row))) {
+			throw new Error('Invalid grid format. Grid must be a 2D array.');
+		}
+		if (grid.length !== this.size || grid.some((row) => row.length !== this.size)) {
+			throw new Error(`Invalid grid dimensions. Expected ${this.size}x${this.size}.`);
+		}
+	}
 	/**
 	 * Reset the grid
 	 */
@@ -109,10 +147,6 @@ export class WordSearch {
 	private validateOptions(): void {
 		if (this.size < 1) {
 			throw new Error('Grid size must be positive');
-		}
-
-		if (!this.words.length) {
-			throw new Error('Words array cannot be empty');
 		}
 
 		this.words.forEach((word) => {
